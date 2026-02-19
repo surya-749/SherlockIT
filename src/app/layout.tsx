@@ -30,6 +30,18 @@ const rajdhani = Rajdhani({
   variable: "--font-rajdhani",
 });
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  weight: ["700", "800", "900"],
+});
+
 export const metadata: Metadata = {
   title: "SherlockIT 2.0 – Mystery Solving Event",
   description:
