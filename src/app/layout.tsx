@@ -1,7 +1,34 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter, Cinzel, Orbitron, Montserrat, Rajdhani } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import { Toaster } from "@/components/ui/sonner";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
+
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  variable: "--font-cinzel",
+});
+
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-orbitron",
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-montserrat",
+});
+
+const rajdhani = Rajdhani({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-rajdhani",
+});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,9 +54,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="mystery-bg font-sans">
+    <html lang="en" className={`${inter.variable} ${cinzel.variable} ${orbitron.variable} ${montserrat.variable} ${rajdhani.variable}`}>
+      <body className="mystery-bg" style={{ fontFamily: "var(--font-inter), system-ui, -apple-system, sans-serif" }}>
         <Providers>{children}</Providers>
+        <Toaster />
       </body>
     </html>
   );
