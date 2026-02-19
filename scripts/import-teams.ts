@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
+
 /**
  * Import teams from CSV into MongoDB
  *
@@ -13,11 +13,16 @@
  * Example:
  *   npx tsx scripts/import-teams.ts ./teams.csv
  */
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import Team from "../src/models/Team";
 
-const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-const path = require("path");
-const fs = require("fs");
+// Fix for __dirname in ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load env vars
 dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
@@ -29,30 +34,18 @@ if (!MONGODB_URI) {
     process.exit(1);
 }
 
-// Team schema (inline to avoid import issues with tsx)
-const TeamSchema = new mongoose.Schema(
-    {
-        teamName: { type: String, required: true, unique: true },
-        leaderEmail: { type: String, required: true, unique: true },
-        members: [{ googleId: String, email: String, name: String }],
-        activeSessionId: { type: String, default: null },
-        completedWorlds: [{ type: mongoose.Schema.Types.ObjectId }],
-        finalSubmitted: { type: Boolean, default: false },
-    },
-    { timestamps: true }
-);
-
 function parseCSV(filePath: string): Array<{ teamName: string; email: string }> {
     const content = fs.readFileSync(filePath, "utf-8");
-    const lines = content.split("\n").filter((line: string) => line.trim());
+    const lines = content.split("\n").filter((line) => line.trim());
 
-    // Skip header row
-    const dataLines = lines.slice(1);
+    // Skip header row if present
+    const startIndex = lines[0].toLowerCase().includes("teamname") ? 1 : 0;
+    const dataLines = lines.slice(startIndex);
     const teams: Array<{ teamName: string; email: string }> = [];
 
     for (const line of dataLines) {
         // Handle quoted CSV values too
-        const parts = line.split(",").map((p: string) => p.trim().replace(/^"|"$/g, ""));
+        const parts = line.split(",").map((p) => p.trim().replace(/^"|"$/g, ""));
 
         if (parts.length >= 2) {
             const teamName = parts[0];
@@ -98,10 +91,8 @@ async function importTeams() {
 
     // Connect to MongoDB
     console.log("🔌 Connecting to MongoDB...");
-    await mongoose.connect(MONGODB_URI);
+    await mongoose.connect(MONGODB_URI!);
     console.log("✅ Connected!\n");
-
-    const Team = mongoose.model("Team", TeamSchema);
 
     let created = 0;
     let skipped = 0;
@@ -124,6 +115,9 @@ async function importTeams() {
                 teamName,
                 leaderEmail: email,
                 members: [],
+                completedWorlds: [],
+                activeSessionId: null,
+                finalSubmitted: false,
             });
 
             console.log(`✅ Created "${teamName}" → ${email}`);

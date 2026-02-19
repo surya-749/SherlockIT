@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -35,9 +35,14 @@ export default function WorldDetailPage() {
   const [displayedStory, setDisplayedStory] = useState("");
   const [storyComplete, setStoryComplete] = useState(false);
 
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
   // Typewriter effect
   useEffect(() => {
     if (!world?.story) return;
+
+    // Clear any existing timer
+    if (intervalRef.current) clearInterval(intervalRef.current);
 
     if (world.isCompleted) {
       setDisplayedStory(world.story);
@@ -49,17 +54,19 @@ export default function WorldDetailPage() {
     setDisplayedStory("");
     setStoryComplete(false);
 
-    const timer = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       if (i < world.story.length) {
         setDisplayedStory(world.story.slice(0, i + 1));
         i++;
       } else {
         setStoryComplete(true);
-        clearInterval(timer);
+        if (intervalRef.current) clearInterval(intervalRef.current);
       }
     }, 25);
 
-    return () => clearInterval(timer);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [world]);
 
   const fetchWorld = useCallback(async () => {
@@ -124,6 +131,7 @@ export default function WorldDetailPage() {
 
   function skipAnimation() {
     if (world) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
       setDisplayedStory(world.story);
       setStoryComplete(true);
     }
